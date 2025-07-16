@@ -1,0 +1,12 @@
+# Fichier à la racine
+.idea/
+*.log
+
+# Pour le backend Spring Boot
+/back/target/
+/back/.mvn/
+/back/.idea/
+
+# Pour le frontend React
+/front/node_modules/
+/front/dist/
