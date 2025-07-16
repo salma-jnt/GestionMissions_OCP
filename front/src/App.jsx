@@ -1,42 +1,32 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
-import CollaborateurForm from './components/CollaborateurForm';
-import CollaborateurList from './components/CollaborateurList';
+import CollaborateursPage from './pages/CollaborateursPage';
+import MissionsPage from './pages/MissionsPage';
+import CartePage from './pages/CartePage';
 
-import MissionForm from './components/MissionForm';
-import MissionList from './components/MissionList';
 
 function App() {
-    // Collaborateurs
-    const [selectedCollaborateur, setSelectedCollaborateur] = useState(null);
-    const [refreshCollaborateurs, setRefreshCollaborateurs] = useState(false);
-
-    const onCollaborateurSaved = () => {
-        setSelectedCollaborateur(null);
-        setRefreshCollaborateurs(!refreshCollaborateurs);
-    };
-
-    // Missions
-    const [selectedMission, setSelectedMission] = useState(null);
-    const [refreshMissions, setRefreshMissions] = useState(false);
-
-    const onMissionSaved = () => {
-        setSelectedMission(null);
-        setRefreshMissions(!refreshMissions);
-    };
-
     return (
-        <div className="container">
-            <h2 className="mt-4">Gestion des collaborateurs</h2>
-            <CollaborateurForm selected={selectedCollaborateur} onSaved={onCollaborateurSaved} />
-            <CollaborateurList onEdit={setSelectedCollaborateur} refresh={refreshCollaborateurs} />
+        <Router>
+            <nav className="navbar navbar-expand navbar-dark bg-dark px-4">
+                <Link className="navbar-brand" to="/">OCP Missions</Link>
+                <div className="navbar-nav">
+                    <Link className="nav-link" to="/collaborateurs">Collaborateurs</Link>
+                    <Link className="nav-link" to="/missions">Missions</Link>
+                    <Link className="nav-link" to="/carte">Carte</Link>
+                </div>
+            </nav>
 
-            <hr className="my-5" />
-
-            <h2 className="mt-4">Gestion des missions</h2>
-            <MissionForm selected={selectedMission} onSaved={onMissionSaved} />
-            <MissionList onEdit={setSelectedMission} refresh={refreshMissions} />
-        </div>
+            <div className="container mt-4">
+                <Routes>
+                    <Route path="/" element={<CollaborateursPage />} />
+                    <Route path="/collaborateurs" element={<CollaborateursPage />} />
+                    <Route path="/missions" element={<MissionsPage />} />
+                    <Route path="/carte" element={<CartePage />} />
+                </Routes>
+            </div>
+        </Router>
     );
 }
 
