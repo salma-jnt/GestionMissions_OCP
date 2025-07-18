@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getMissions, deleteMission } from '../services/missionService';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 function MissionList({ onEdit, refresh }) {
     const [missions, setMissions] = useState([]);
@@ -15,10 +17,17 @@ function MissionList({ onEdit, refresh }) {
 
     const handleDelete = async (id) => {
         if (confirm("Supprimer cette mission ?")) {
-            await deleteMission(id);
-            fetchData();
+            try {
+                await deleteMission(id);
+                toast.success("🗑️ Mission supprimée");
+                fetchData();
+            } catch {
+                toast.error("❌ Erreur lors de la suppression");
+            }
         }
     };
+    const navigate = useNavigate();
+
 
     return (
         <div className="container mt-4">
@@ -39,6 +48,7 @@ function MissionList({ onEdit, refresh }) {
                             <td>
                                 <button className="btn btn-sm btn-warning me-2" onClick={() => onEdit(m)}>Éditer</button>
                                 <button className="btn btn-sm btn-danger" onClick={() => handleDelete(m.id)}>Supprimer</button>
+                                <button className="btn btn-sm btn-secondary me-2" onClick={() => navigate(`/missions/${m.id}/affecter`)}> Affecter </button>
                             </td>
                         </tr>
                     ))}
