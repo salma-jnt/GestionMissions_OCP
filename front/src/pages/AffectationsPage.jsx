@@ -1,10 +1,9 @@
-import React from 'react';
-import AffectationList from '../components/AffectationList';
+import React from "react";
+import AffectationList from "../components/AffectationList";
 
 function AffectationsPage() {
     return (
-        <div className="container">
-            <h2 className="mt-4">Affectations des missions</h2>
+        <div>
             <AffectationList />
         </div>
     );

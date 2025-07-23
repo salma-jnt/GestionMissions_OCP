@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
 
 import CollaborateursPage from './pages/CollaborateursPage';
 import MissionsPage from './pages/MissionsPage';
@@ -8,24 +9,13 @@ import { ToastContainer } from 'react-toastify';
 import AffectationsPage from './pages/AffectationsPage';
 import AffecterMissionPage from './pages/AffecterMissionPage';
 import VehiculesPage from './pages/VehiculesPage';
-
-
-
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 function App() {
     return (
         <Router>
-            <nav className="navbar navbar-expand navbar-dark bg-dark px-4">
-                <Link className="navbar-brand" to="/">OCP Missions</Link>
-                <div className="navbar-nav">
-                    <Link className="nav-link" to="/collaborateurs">Collaborateurs</Link>
-                    <Link className="nav-link" to="/missions">Missions</Link>
-                    <Link className="nav-link" to="/carte">Carte</Link>
-                    <Link className="nav-link" to="/affectations">Affectations</Link>
-                    <Link className="nav-link" to="/vehicules">Véhicules</Link>
-                </div>
-            </nav>
-
+            <Navbar />
             <div className="container mt-4">
                 <Routes>
                     <Route path="/" element={<CollaborateursPage />} />
@@ -35,6 +25,8 @@ function App() {
                     <Route path="/affectations" element={<AffectationsPage />} />
                     <Route path="/missions/:id/affecter" element={<AffecterMissionPage />} />
                     <Route path="/vehicules" element={<VehiculesPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
                 </Routes>
             </div>
             <ToastContainer position="top-right" autoClose={3000} hideProgressBar />

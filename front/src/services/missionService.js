@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios from '../api/axiosConfig';
+
 
 const API_URL = 'http://localhost:8080/api/missions';
 
