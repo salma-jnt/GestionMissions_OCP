@@ -4,6 +4,7 @@ import App from './App.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';
+import './index.css';
 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
