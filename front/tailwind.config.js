@@ -5,7 +5,15 @@ export default {
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
-        extend: {},
+        extend: {
+            backgroundImage: {
+                'stars': 'radial-gradient(white 1px, transparent 1px)',
+            },
+            backgroundSize: {
+                'dot': '20px 20px',
+            },
+        },
     },
+
     plugins: [],
 }

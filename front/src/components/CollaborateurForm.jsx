@@ -34,6 +34,9 @@ function CollaborateurForm({ selected, onSaved }) {
                     <div className="col"><input name="nom" className="form-control" placeholder="Nom" value={form.nom} onChange={handleChange} /></div>
                     <div className="col"><input name="prenom" className="form-control" placeholder="Prénom" value={form.prenom} onChange={handleChange} /></div>
                 </div>
+                <div className="bg-red-500 text-white p-4 rounded">
+                    ✅ Si tu vois ce bloc rouge, Tailwind fonctionne !
+                </div>
                 <div className="row mb-2">
                     <div className="col"><input name="email" className="form-control" placeholder="Email" value={form.email} onChange={handleChange} /></div>
                     <div className="col"><input name="role" className="form-control" placeholder="Rôle" value={form.role} onChange={handleChange} /></div>

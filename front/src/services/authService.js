@@ -1,10 +1,13 @@
 import axios from '../api/axiosConfig';
+import { jwtDecode } from 'jwt-decode';
+
 
 const API_URL = 'http://localhost:8080/api/auth';
 
 export const login = async (credentials) => {
     const response = await axios.post(`${API_URL}/login`, credentials);
     const { token, role } = response.data;
+
     localStorage.setItem('token', token);
     localStorage.setItem('role', role);
     return { token, role };
@@ -16,5 +19,19 @@ export const logout = () => {
 };
 
 export const getToken = () => localStorage.getItem('token');
+
 export const getRole = () => localStorage.getItem('role');
-export const isAuthenticated = () => !!getToken();
+
+export const isAuthenticated = () => {
+    const token = getToken();
+    return token && !isTokenExpired(token);
+};
+
+export const isTokenExpired = (token) => {
+    try {
+        const decoded = jwtDecode(token);
+        return decoded.exp * 1000 < Date.now(); // exp en secondes
+    } catch {
+        return true;
+    }
+};

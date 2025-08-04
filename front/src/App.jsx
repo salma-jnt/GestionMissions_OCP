@@ -1,34 +1,69 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-
 import CollaborateursPage from './pages/CollaborateursPage';
 import MissionsPage from './pages/MissionsPage';
 import CartePage from './pages/CartePage';
-import { ToastContainer } from 'react-toastify';
 import AffectationsPage from './pages/AffectationsPage';
 import AffecterMissionPage from './pages/AffecterMissionPage';
 import VehiculesPage from './pages/VehiculesPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import LandingPage from './pages/LandingPage';
+import NavbarLanding from './components/NavbarLanding';
+import Layout from './components/Layout'; // ✅ le vrai layout connecté
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
+// Layout pour les routes publiques
+function PublicLayout({ children }) {
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <NavbarLanding />
+            <main>{children}</main>
+        </div>
+    );
+}
+
+// Composant principal
 function App() {
     return (
         <Router>
-            <Navbar />
-            <div className="container mt-4">
-                <Routes>
-                    <Route path="/" element={<CollaborateursPage />} />
-                    <Route path="/collaborateurs" element={<CollaborateursPage />} />
-                    <Route path="/missions" element={<MissionsPage />} />
-                    <Route path="/carte" element={<CartePage />} />
-                    <Route path="/affectations" element={<AffectationsPage />} />
-                    <Route path="/missions/:id/affecter" element={<AffecterMissionPage />} />
-                    <Route path="/vehicules" element={<VehiculesPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                </Routes>
-            </div>
+            <Routes>
+                {/* Routes publiques */}
+                <Route
+                    path="/"
+                    element={
+                        <PublicLayout>
+                            <LandingPage />
+                        </PublicLayout>
+                    }
+                />
+                <Route
+                    path="/login"
+                    element={
+                        <PublicLayout>
+                            <LoginPage />
+                        </PublicLayout>
+                    }
+                />
+                <Route
+                    path="/register"
+                    element={
+                        <PublicLayout>
+                            <RegisterPage />
+                        </PublicLayout>
+                    }
+                />
+
+                {/* Routes privées avec Layout (sidebar + header) */}
+                <Route path="/collaborateurs" element={<Layout><CollaborateursPage /></Layout>} />
+                <Route path="/missions" element={<Layout><MissionsPage /></Layout>} />
+                <Route path="/carte" element={<Layout><CartePage /></Layout>} />
+                <Route path="/vehicules" element={<Layout><VehiculesPage /></Layout>} />
+                <Route path="/affectations" element={<Layout><AffectationsPage /></Layout>} />
+                <Route path="/missions/:id/affecter" element={<Layout><AffecterMissionPage /></Layout>} />
+            </Routes>
+
             <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
         </Router>
     );
