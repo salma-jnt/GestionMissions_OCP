@@ -1,35 +1,72 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import CollaborateursPage from './pages/CollaborateursPage';
+import MissionsPage from './pages/MissionsPage';
+import CartePage from './pages/CartePage';
+import AffectationsPage from './pages/AffectationsPage';
+import AffecterMissionPage from './pages/AffecterMissionPage';
+import VehiculesPage from './pages/VehiculesPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import LandingPage from './pages/LandingPage';
+import NavbarLanding from './components/NavbarLanding';
+import Layout from './components/Layout'; // ✅ le vrai layout connecté
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+// Layout pour les routes publiques
+function PublicLayout({ children }) {
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <NavbarLanding />
+            <main>{children}</main>
+        </div>
+    );
 }
 
-export default App
+// Composant principal
+function App() {
+    return (
+        <Router>
+            <Routes>
+                {/* Routes publiques */}
+                <Route
+                    path="/"
+                    element={
+                        <PublicLayout>
+                            <LandingPage />
+                        </PublicLayout>
+                    }
+                />
+                <Route
+                    path="/login"
+                    element={
+                        <PublicLayout>
+                            <LoginPage />
+                        </PublicLayout>
+                    }
+                />
+                <Route
+                    path="/register"
+                    element={
+                        <PublicLayout>
+                            <RegisterPage />
+                        </PublicLayout>
+                    }
+                />
+
+                {/* Routes privées avec Layout (sidebar + header) */}
+                <Route path="/collaborateurs" element={<Layout><CollaborateursPage /></Layout>} />
+                <Route path="/missions" element={<Layout><MissionsPage /></Layout>} />
+                <Route path="/carte" element={<Layout><CartePage /></Layout>} />
+                <Route path="/vehicules" element={<Layout><VehiculesPage /></Layout>} />
+                <Route path="/affectations" element={<Layout><AffectationsPage /></Layout>} />
+                <Route path="/missions/:id/affecter" element={<Layout><AffecterMissionPage /></Layout>} />
+            </Routes>
+
+            <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+        </Router>
+    );
+}
+
+export default App;
