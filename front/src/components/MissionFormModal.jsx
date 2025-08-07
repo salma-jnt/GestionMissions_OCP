@@ -14,7 +14,7 @@ export default function MissionFormModal({ isOpen, onClose, onSaved, selected })
         dateFin: ''
     });
 
-    // Géocodage automatique
+    // Geocodage automatique
     useEffect(() => {
         const delay = setTimeout(() => {
             if (form.lieu) {
@@ -40,7 +40,7 @@ export default function MissionFormModal({ isOpen, onClose, onSaved, selected })
         return () => clearTimeout(delay);
     }, [form.lieu]);
 
-    // Initialisation formulaire
+    // Initialiser le formulaire
     useEffect(() => {
         if (!isOpen) return;
 
@@ -93,20 +93,24 @@ export default function MissionFormModal({ isOpen, onClose, onSaved, selected })
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 relative animate-fade-in">
+                {/* Fermer */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl"
                 >
-                    ✕
+                    &times;
                 </button>
 
-                <h2 className="text-xl font-bold text-emerald-800 mb-4">
-                    {selected ? 'Modifier la mission' : 'Créer une nouvelle mission'}
+                {/* Titre */}
+                <h2 className="text-2xl font-semibold text-emerald-700 mb-4 border-b pb-2">
+                    {selected ? 'Modifier la mission' : 'Créer une mission'}
                 </h2>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Formulaire */}
+                <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+
                     <input
                         name="titre"
                         className="w-full border rounded px-3 py-2"
@@ -168,20 +172,20 @@ export default function MissionFormModal({ isOpen, onClose, onSaved, selected })
                         <option value="À venir">À venir</option>
                         <option value="En cours">En cours</option>
                         <option value="Terminée">Terminée</option>
-                        <option value="Planifiée">Planifiée</option>
                     </select>
 
+                    {/* Boutons */}
                     <div className="flex justify-end gap-3 pt-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition"
                         >
                             Annuler
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white"
+                            className="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition"
                         >
                             {selected ? 'Mettre à jour' : 'Créer mission'}
                         </button>
