@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LandingPage from './pages/LandingPage';
 import NavbarLanding from './components/NavbarLanding';
+import DashboardPage from './pages/DashboardPage'; 
 import Layout from './components/Layout'; // ✅ le vrai layout connecté
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -62,6 +63,9 @@ function App() {
                 <Route path="/vehicules" element={<Layout><VehiculesPage /></Layout>} />
                 <Route path="/affectations" element={<Layout><AffectationsPage /></Layout>} />
                 <Route path="/missions/:id/affecter" element={<Layout><AffecterMissionPage /></Layout>} />
+                <Route path="/dashboard" element={<Layout><DashboardPage /></Layout>} />
+
+                {/* Route de fallback */}
             </Routes>
 
             <ToastContainer position="top-right" autoClose={3000} hideProgressBar />

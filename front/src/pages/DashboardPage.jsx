@@ -1,143 +1,193 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from 'react';
+import { getMissions } from '../services/missionService';
+import { getCollaborateurs } from '../services/collaborateurService';
+import { getVehicules } from '../services/vehiculeService';
+import { CheckCircleIcon, UsersIcon, MapPinIcon, TruckIcon } from '@heroicons/react/24/outline';
 
-export default function DashboardPage() {
-    const [stats, setStats] = useState({
-        activeMissions: 12,
-        doneMissions: 156,
-        vehicules: 8,
-        collaborateurs: 24,
-    });
+function Dashboard() {
+    const [missions, setMissions] = useState([]);
+    const [collaborateurs, setCollaborateurs] = useState([]);
+    const [vehicules, setVehicules] = useState([]);
 
-    const [missionsRecentes, setMissionsRecentes] = useState([
-        {
-            code: "M001",
-            collaborateur: "Youssef Alami",
-            destination: "Maroc Phosphore I",
-            vehicule: "Toyota Hilux - MAT-1234",
-            statut: "En cours",
-            heure: "08:30",
-        },
-        {
-            code: "M002",
-            collaborateur: "Fatima Zahra",
-            destination: "Port de Safi",
-            vehicule: "Iveco Daily - MAT-5678",
-            statut: "Terminée",
-            heure: "07:15",
-        },
-        {
-            code: "M003",
-            collaborateur: "Mohammed Bennani",
-            destination: "Maroc Chimie",
-            vehicule: "Renault Master - MAT-9012",
-            statut: "À venir",
-            heure: "14:00",
-        },
-    ]);
+    useEffect(() => {
+        getMissions().then(res => setMissions(res?.data || []));
+        getCollaborateurs().then(res => setCollaborateurs(res?.data || []));
+        getVehicules().then(res => setVehicules(res?.data || []));
+    }, []);
 
-    const getStatColor = (statut) => {
+    const countByStatus = (status) => missions.filter(m => m.statut === status).length;
+
+    const getStatutColor = (statut) => {
         switch (statut) {
-            case "En cours":
-                return "bg-blue-100 text-blue-700";
-            case "Terminée":
-                return "bg-green-100 text-green-700";
-            case "À venir":
-                return "bg-yellow-100 text-yellow-700";
-            default:
-                return "bg-gray-100 text-gray-700";
+            case 'Terminée': return 'bg-green-100 text-green-800';
+            case 'En cours': return 'bg-blue-100 text-blue-800';
+            case 'À venir': return 'bg-yellow-100 text-yellow-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    };
+    const fmt = (t) => (t === 0 ? '0' : (t ? String(t) : '—'));
+
+    // --- Parsing robuste pour dateDebut (String)
+    // Accepte: "2025-08-12T09:15", "2025-08-12 09:15", "2025-08-12", etc.
+    const parseDate = (s) => {
+        if (!s) return null;
+        const str = String(s).trim();
+        // normalize "YYYY-MM-DD HH:mm" -> "YYYY-MM-DDTHH:mm:00"
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return new Date(`${str}T00:00:00`);
+        if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/.test(str)) {
+            const [d, h] = str.split(/\s+/);
+            return new Date(`${d}T${h}:00`);
+        }
+        // let Date() try for ISO "YYYY-MM-DDTHH:mm[:ss]"
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+    };
+
+    const missionDate = (m) => {
+        const d =
+            parseDate(m.dateDebut) ||
+            (m.createdAt ? new Date(m.createdAt) : null) ||
+            (m.updatedAt ? new Date(m.updatedAt) : null);
+        return d ? d : new Date(0);
+    };
+
+    const extractHour = (s) => {
+        const d = parseDate(s);
+        if (!d) return '—';
+        // HH:mm
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+    };
+
+    // --- Top 3 missions les plus récentes ---
+    const recentMissions = useMemo(() => {
+        return [...missions]
+            .sort((a, b) => missionDate(b) - missionDate(a))
+            .slice(0, 3);
+    }, [missions]);
+
+    // --- Stat cards ---
+    const vehiculesEnService = vehicules.filter(v => v.etat === 'En service');
+    const statCards = [
+        { title: 'Missions Actives', count: countByStatus('En cours'), icon: MapPinIcon, trend: '+3 cette semaine', color: 'text-blue-600', bg: 'bg-blue-100' },
+        { title: 'Véhicules en Service', count: vehiculesEnService.length, icon: TruckIcon, trend: '+1 cette semaine', color: 'text-green-600', bg: 'bg-green-100' },
+        { title: 'Collaborateurs', count: collaborateurs.length, icon: UsersIcon, trend: '0 cette semaine', color: 'text-purple-600', bg: 'bg-purple-100' },
+        { title: 'Missions Terminées', count: countByStatus('Terminée'), icon: CheckCircleIcon, trend: '+12 cette semaine', color: 'text-black', bg: 'bg-gray-100' }
+    ];
+
+    // --- Disponibilité véhicule (Disponible / En mission / En panne)
+    const vehiculeAvailability = (v) => {
+        const active = missions.some(m => m.vehicule?.id === v.id && m.statut === 'En cours');
+        if (active) return 'En mission';
+        if (v.etat === 'En panne') return 'En panne';
+        return 'Disponible';
+    };
+    const availabilityBadge = (status) => {
+        switch (status) {
+            case 'Disponible': return 'bg-green-100 text-green-800';
+            case 'En mission': return 'bg-blue-100 text-blue-800';
+            case 'En panne': return 'bg-red-100 text-red-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    };
+    const dotColor = (status) => {
+        switch (status) {
+            case 'Disponible': return 'bg-green-500';
+            case 'En mission': return 'bg-blue-500';
+            case 'En panne': return 'bg-red-500';
+            default: return 'bg-gray-400';
         }
     };
 
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Tableau de Bord</h1>
-            <p className="text-sm text-gray-500 mb-6">Vue d'ensemble des missions et véhicules OCP Safi</p>
+        <div className="p-6 bg-gray-50 min-h-screen">
+            <h1 className="text-3xl font-bold mb-2">Tableau de Bord</h1>
+            <p className="text-gray-600 mb-6">Vue d'ensemble des missions et véhicules OCP Safi</p>
 
-            {/* Statistiques */}
+            {/* Stat Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <StatCard title="Missions Actives" icon="📍" count={stats.activeMissions} trend="+3 cette semaine" />
-                <StatCard title="Véhicules en Service" icon="🚗" count={stats.vehicules} trend="+1 cette semaine" />
-                <StatCard title="Collaborateurs" icon="👤" count={stats.collaborateurs} trend="0 cette semaine" />
-                <StatCard title="Missions Terminées" icon="✔️" count={stats.doneMissions} trend="+12 cette semaine" />
+                {statCards.map((card, idx) => (
+                    <div key={idx} className="bg-white p-6 rounded-lg shadow text-center space-y-2">
+                        <div className={`w-10 h-10 mx-auto flex items-center justify-center rounded-full ${card.bg}`}>
+                            <card.icon className={`w-6 h-6 ${card.color}`} />
+                        </div>
+                        <h3 className="text-sm font-medium text-gray-600">{card.title}</h3>
+                        <p className="text-3xl font-bold">{card.count}</p>
+                        <p className="text-sm text-green-600 font-semibold">↗ {card.trend}</p>
+                    </div>
+                ))}
             </div>
 
             {/* Missions Récentes */}
-            <div className="bg-white rounded-lg shadow p-4 mb-10">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800">Missions Récentes</h2>
-                    <Link to="/missions" className="text-green-600 hover:underline">Voir tout</Link>
+            <div className="bg-white rounded-lg shadow p-6 mb-10">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Missions Récentes</h2>
+                    <a href="/missions" className="text-green-700 hover:underline font-medium">Voir tout</a>
                 </div>
-                <table className="w-full text-sm text-left">
-                    <thead>
-                        <tr className="text-gray-500 border-b">
-                            <th className="py-2">MISSION</th>
-                            <th>COLLABORATEUR</th>
-                            <th>DESTINATION</th>
-                            <th>VÉHICULE</th>
-                            <th>STATUT</th>
-                            <th>HEURE</th>
+                <table className="min-w-full text-sm">
+                    <thead className="bg-gray-100 text-gray-600">
+                        <tr>
+                            <th className="px-4 py-2 text-left">MISSION</th>
+                            <th className="px-4 py-2 text-left">COLLABORATEUR</th>
+                            <th className="px-4 py-2 text-left">DESTINATION</th>
+                            <th className="px-4 py-2 text-left">VÉHICULE</th>
+                            <th className="px-4 py-2 text-left">STATUT</th>
+                            <th className="px-4 py-2 text-left">HEURE</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {missionsRecentes.map((m) => (
-                            <tr key={m.code} className="border-b hover:bg-gray-50">
-                                <td className="py-2 font-medium">{m.code}</td>
-                                <td>{m.collaborateur}</td>
-                                <td>{m.destination}</td>
-                                <td>{m.vehicule}</td>
-                                <td>
-                                    <span className={`text-xs px-2 py-1 rounded-full ${getStatColor(m.statut)}`}>
-                                        {m.statut}
+                        {recentMissions.map((m, i) => (
+                            <tr key={i} className="border-t">
+                                <td className="px-4 py-2 font-semibold">{fmt(m.titre)}</td>
+                                <td className="px-4 py-2">{fmt(m.collaborateur?.nomComplet || m.collaborateur?.nom)}</td>
+                                <td className="px-4 py-2">{fmt(m.lieu)}</td>
+                                <td className="px-4 py-2">
+                                    {m.vehicule
+                                        ? `${fmt(m.vehicule.marque)} - ${fmt(m.vehicule.matricule)}`
+                                        : '—'}
+                                </td>
+                                <td className="px-4 py-2">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatutColor(m.statut)}`}>
+                                        {fmt(m.statut)}
                                     </span>
                                 </td>
-                                <td>{m.heure}</td>
+                                <td className="px-4 py-2">{extractHour(m.dateDebut)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
 
-            {/* Actions rapides */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <ActionCard title="Nouvelle Mission" subtitle="Créer et assigner une mission" buttonText="Créer Mission" color="blue" to="/affecter-mission" />
-                <ActionCard title="Rapport Mensuel" subtitle="Générer un rapport détaillé" buttonText="Générer Rapport" color="green" to="/rapports" />
-                <ActionCard title="Suivi Temps Réel" subtitle="Voir les missions actives" buttonText="Voir Carte" color="purple" to="/carte" />
+            {/* État des véhicules */}
+            <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-lg font-semibold mb-4">État des Véhicules</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {vehicules.map((v) => {
+                        const status = vehiculeAvailability(v);
+                        return (
+                            <div key={v.id} className="border rounded-lg p-4 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                                            d="M3 7h10v8H3V7zm10 3h4l4 4v1h-2m-6 0h-2m-2 0H5m10-1a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    <div>
+                                        <p className="font-semibold">{fmt(v.marque)} - {fmt(v.matricule)}</p>
+                                        <p className="text-sm text-gray-500">{fmt(v.type)}</p>
+                                    </div>
+                                </div>
+                                <span className={`text-xs font-medium px-2 py-1 rounded-full inline-flex items-center gap-2 ${availabilityBadge(status)}`}>
+                                    {status}
+                                    <span className={`w-2.5 h-2.5 rounded-full ${dotColor(status)}`}></span>
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
 }
 
-function StatCard({ title, count, icon, trend }) {
-    return (
-        <div className="bg-white shadow rounded-lg p-4 flex items-center justify-between">
-            <div>
-                <p className="text-gray-600 text-sm">{title}</p>
-                <p className="text-2xl font-bold text-gray-800">{count}</p>
-                <p className="text-green-600 text-xs mt-1">{trend}</p>
-            </div>
-            <div className="text-3xl">{icon}</div>
-        </div>
-    );
-}
-
-function ActionCard({ title, subtitle, buttonText, color, to }) {
-    const colors = {
-        blue: "bg-blue-100 text-blue-700 hover:bg-blue-200",
-        green: "bg-green-100 text-green-700 hover:bg-green-200",
-        purple: "bg-purple-100 text-purple-700 hover:bg-purple-200",
-    };
-
-    return (
-        <div className="bg-white shadow rounded-lg p-4">
-            <p className="text-sm font-semibold text-gray-700">{title}</p>
-            <p className="text-xs text-gray-500 mb-4">{subtitle}</p>
-            <Link
-                to={to}
-                className={`block text-center py-2 rounded font-semibold ${colors[color]} transition`}
-            >
-                {buttonText}
-            </Link>
-        </div>
-    );
-}
+export default Dashboard;

@@ -41,3 +41,13 @@ a {
 .animate-fade-in {
     animation: fade-in 0.3s ease-out;
 }
+
+/* Dans index.css, ajoutez ceci après vos autres règles : */
+nav a[href] {
+    color: #111827 !important;
+}
+
+nav a[href].active,
+nav a[href]:hover {
+    color: #166534 !important;
+}
