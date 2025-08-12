@@ -11,37 +11,38 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ocp.missions.model.Collaborateur;
-import com.ocp.missions.service.CollaborateurService;
+import com.ocp.missions.model.Mission;
+import com.ocp.missions.service.MissionService;
 
 @RestController
-@RequestMapping("/api/collaborateurs")
-public class CollaborateurController {
+@RequestMapping("/api/missions")
 
-    private final CollaborateurService service;
+public class MissionController {
 
-    public CollaborateurController(CollaborateurService service) {
+    private final MissionService service;
+
+    public MissionController(MissionService service) {
         this.service = service;
     }
 
     @GetMapping
-    public List<Collaborateur> getAll() {
+    public List<Mission> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public Collaborateur getById(@PathVariable Long id) {
+    public Mission getById(@PathVariable Long id) {
         return service.getById(id);
     }
 
     @PostMapping
-    public Collaborateur create(@RequestBody Collaborateur c) {
-        return service.save(c);
+    public Mission create(@RequestBody Mission mission) {
+        return service.save(mission);
     }
 
     @PutMapping("/{id}")
-    public Collaborateur update(@PathVariable Long id, @RequestBody Collaborateur c) {
-        return service.update(id, c);
+    public Mission update(@PathVariable Long id, @RequestBody Mission mission) {
+        return service.update(id, mission);
     }
 
     @DeleteMapping("/{id}")
