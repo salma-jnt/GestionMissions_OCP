@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getCollaborateurs } from '../services/collaborateurService';
 import { getVehicules } from '../services/vehiculeService';
-import { updateMission } from '../services/missionService';
+import { affecterMission } from '../services/missionService';
 import { toast } from 'react-toastify';
 
 export default function AffectationModal({ isOpen, mission, onClose, onSaved }) {
@@ -9,6 +9,7 @@ export default function AffectationModal({ isOpen, mission, onClose, onSaved }) 
     const [vehiculeId, setVehiculeId] = useState('');
     const [collaborateurs, setCollaborateurs] = useState([]);
     const [vehicules, setVehicules] = useState([]);
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -21,16 +22,26 @@ export default function AffectationModal({ isOpen, mission, onClose, onSaved }) 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!mission?.id) return;
+
         try {
-            await updateMission(mission.id, {
-                ...mission,
-                collaborateurId,
-                vehiculeId,
-            });
-            toast.success("✅ Affectation enregistrée");
-            onSaved();
-        } catch {
+            setSubmitting(true);
+            const payload = {
+                collaborateurId: collaborateurId ? Number(collaborateurId) : null,
+                vehiculeId: vehiculeId ? Number(vehiculeId) : null,
+            };
+
+            const res = await affecterMission(mission.id, payload);
+
+            toast.success('✅ Affectation enregistrée');
+            // Renvoie la mission mise à jour au parent (si le parent fait une MAJ locale)
+            onSaved && onSaved(res.data);
+            onClose && onClose();
+        } catch (err) {
+            console.error(err);
             toast.error("❌ Erreur lors de l’affectation");
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -38,11 +49,12 @@ export default function AffectationModal({ isOpen, mission, onClose, onSaved }) 
 
     return (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-6 relative animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-6 relative">
                 {/* Bouton Fermer */}
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-xl"
+                    disabled={submitting}
                 >
                     &times;
                 </button>
@@ -92,14 +104,16 @@ export default function AffectationModal({ isOpen, mission, onClose, onSaved }) 
                             type="button"
                             onClick={onClose}
                             className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium"
+                            disabled={submitting}
                         >
                             Annuler
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                            className="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-medium disabled:opacity-60"
+                            disabled={submitting}
                         >
-                            Enregistrer
+                            {submitting ? 'Enregistrement…' : 'Enregistrer'}
                         </button>
                     </div>
                 </form>

@@ -16,4 +16,6 @@ public interface MissionService {
 
     void delete(Long id);
 
+    // ✅ Nouveau : affecter collaborateur & véhicule à une mission
+    Mission affecterCollaborateurVehicule(Long missionId, Long collaborateurId, Long vehiculeId);
 }

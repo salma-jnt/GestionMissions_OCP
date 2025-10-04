@@ -1,13 +1,27 @@
 package com.ocp.missions.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+/**
+ * DTO d’affectation utilisé pour échanger les infos
+ * Mission/Collaborateur/Véhicule. - @JsonIgnoreProperties(ignoreUnknown = true)
+ * : ignore les clés supplémentaires reçues. - @JsonAlias : accepte plusieurs
+ * variantes de noms pour les champs d'ID.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AffectationDTO {
 
     private Long missionId;
     private String missionTitre;
 
+    // Accepte: collaborateurId, collaborateur_id, idCollaborateur, collaborateur
+    @JsonAlias({"collaborateurId", "collaborateur_id", "idCollaborateur", "collaborateur"})
     private Long collaborateurId;
     private String collaborateurNom;
 
+    // Accepte: vehiculeId, vehicule_id, idVehicule, vehicule
+    @JsonAlias({"vehiculeId", "vehicule_id", "idVehicule", "vehicule"})
     private Long vehiculeId;
     private String vehiculeMatricule;
 

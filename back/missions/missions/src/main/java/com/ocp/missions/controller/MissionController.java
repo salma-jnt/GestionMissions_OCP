@@ -2,21 +2,14 @@ package com.ocp.missions.controller;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import com.ocp.missions.dto.AffectationDTO;
 import com.ocp.missions.model.Mission;
 import com.ocp.missions.service.MissionService;
 
 @RestController
 @RequestMapping("/api/missions")
-
 public class MissionController {
 
     private final MissionService service;
@@ -43,6 +36,12 @@ public class MissionController {
     @PutMapping("/{id}")
     public Mission update(@PathVariable Long id, @RequestBody Mission mission) {
         return service.update(id, mission);
+    }
+
+    // ✅ Nouveau endpoint d'affectation
+    @PutMapping("/{id}/affectation")
+    public Mission affecterCollaborateurVehicule(@PathVariable Long id, @RequestBody AffectationDTO dto) {
+        return service.affecterCollaborateurVehicule(id, dto.getCollaborateurId(), dto.getVehiculeId());
     }
 
     @DeleteMapping("/{id}")
