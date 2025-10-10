@@ -31,17 +31,6 @@ function CollaborateurList({ onEdit, refresh }) {
         }
     };
 
-    const getBadgeRole = (role) => {
-        switch (role) {
-            case 'RESPONSABLE':
-                return 'bg-emerald-100 text-emerald-800';
-            case 'COLLABORATEUR':
-                return 'bg-indigo-100 text-indigo-800';
-            default:
-                return 'bg-gray-100 text-gray-600';
-        }
-    };
-
     return (
         <div className="overflow-x-auto shadow rounded-lg bg-white">
             <table className="min-w-full divide-y divide-gray-200 text-sm text-gray-800">
@@ -50,7 +39,9 @@ function CollaborateurList({ onEdit, refresh }) {
                         <th className="px-4 py-3 text-left">Nom</th>
                         <th className="px-4 py-3 text-left">Prénom</th>
                         <th className="px-4 py-3 text-left">Email</th>
-                        <th className="px-4 py-3 text-left">Rôle</th>
+                        <th className="px-4 py-3 text-left">Département</th>
+                        <th className="px-4 py-3 text-left">Service</th>
+                        <th className="px-4 py-3 text-left">Poste</th>
                         <th className="px-4 py-3 text-left">Actions</th>
                     </tr>
                 </thead>
@@ -60,11 +51,9 @@ function CollaborateurList({ onEdit, refresh }) {
                             <td className="px-4 py-2 font-medium">{c.nom}</td>
                             <td className="px-4 py-2">{c.prenom}</td>
                             <td className="px-4 py-2">{c.email}</td>
-                            <td className="px-4 py-2">
-                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getBadgeRole(c.role)}`}>
-                                    {c.role}
-                                </span>
-                            </td>
+                            <td className="px-4 py-2">{c.departement}</td>
+                            <td className="px-4 py-2">{c.service}</td>
+                            <td className="px-4 py-2">{c.poste}</td>
                             <td className="px-4 py-2 flex gap-2">
                                 <button
                                     onClick={() => onEdit(c)}

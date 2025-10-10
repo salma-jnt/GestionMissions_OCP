@@ -25,5 +25,8 @@ public class Collaborateur {
     private String nom;
     private String prenom;
     private String email;
-    private String role; // ex : Collaborateur ou Responsable
+
+    private String departement;  // Exemple : "Maintenance Industrielle"
+    private String service;      // Exemple : "Mécanique lourde"
+    private String poste;        // Exemple : "Technicien de maintenance"
 }

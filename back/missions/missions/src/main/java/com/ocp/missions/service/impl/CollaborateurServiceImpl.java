@@ -1,11 +1,12 @@
 package com.ocp.missions.service.impl;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.ocp.missions.model.Collaborateur;
 import com.ocp.missions.repository.CollaborateurRepository;
 import com.ocp.missions.service.CollaborateurService;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class CollaborateurServiceImpl implements CollaborateurService {
@@ -37,7 +38,6 @@ public class CollaborateurServiceImpl implements CollaborateurService {
         existing.setNom(c.getNom());
         existing.setPrenom(c.getPrenom());
         existing.setEmail(c.getEmail());
-        existing.setRole(c.getRole());
         return repo.save(existing);
     }
 

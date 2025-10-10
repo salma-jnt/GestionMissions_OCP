@@ -2,6 +2,7 @@ package com.ocp.missions.controller;
 
 import com.ocp.missions.model.Vehicule;
 import com.ocp.missions.repository.VehiculeRepository;
+import com.ocp.missions.service.VehiculeService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,14 +13,17 @@ import java.util.List;
 public class VehiculeController {
 
     private final VehiculeRepository vehiculeRepository;
+    private final VehiculeService vehiculeService;
 
-    public VehiculeController(VehiculeRepository vehiculeRepository) {
+    public VehiculeController(VehiculeRepository vehiculeRepository, VehiculeService vehiculeService) {
         this.vehiculeRepository = vehiculeRepository;
+        this.vehiculeService = vehiculeService;
     }
 
     @GetMapping
     public List<Vehicule> getAll() {
-        return vehiculeRepository.findAll();
+        // ✅ version avec calcul de disponibilité
+        return vehiculeService.getAllWithDisponibilite();
     }
 
     @PostMapping

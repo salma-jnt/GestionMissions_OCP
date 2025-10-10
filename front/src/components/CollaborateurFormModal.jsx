@@ -7,8 +7,36 @@ export default function CollaborateurFormModal({ isOpen, onClose, onSaved, selec
         nom: '',
         prenom: '',
         email: '',
-        role: 'COLLABORATEUR'
+        departement: '',
+        service: '',
+        poste: ''
     });
+
+    // 🎯 Données statiques pour les listes déroulantes
+    const departements = [
+        "Maintenance Industrielle",
+        "Production Chimique",
+        "Logistique et Transport",
+        "Informatique",
+        "Sécurité et Environnement"
+    ];
+
+    const services = {
+        "Maintenance Industrielle": ["Mécanique lourde", "Électromécanique"],
+        "Production Chimique": ["Réacteur 1", "Filtration", "Contrôle Qualité"],
+        "Logistique et Transport": ["Parc Véhicules", "Approvisionnement"],
+        "Informatique": ["Réseau & Systèmes", "Développement Applicatif"],
+        "Sécurité et Environnement": ["Sécurité industrielle", "Hygiène & Santé"]
+    };
+
+    const postes = [
+        "Technicien de maintenance",
+        "Conducteur",
+        "Opérateur de production",
+        "Chef de service",
+        "Ingénieur systèmes",
+        "Responsable sécurité"
+    ];
 
     useEffect(() => {
         if (!isOpen) return;
@@ -19,20 +47,29 @@ export default function CollaborateurFormModal({ isOpen, onClose, onSaved, selec
                 nom: selected.nom || '',
                 prenom: selected.prenom || '',
                 email: selected.email || '',
-                role: selected.role || 'COLLABORATEUR'
+                departement: selected.departement || '',
+                service: selected.service || '',
+                poste: selected.poste || ''
             });
         } else {
             setForm({
                 nom: '',
                 prenom: '',
                 email: '',
-                role: 'COLLABORATEUR'
+                departement: '',
+                service: '',
+                poste: ''
             });
         }
     }, [isOpen, selected]);
 
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setForm((prev) => ({
+            ...prev,
+            [name]: value,
+            ...(name === "departement" ? { service: "" } : {}) // reset service quand département change
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -46,7 +83,9 @@ export default function CollaborateurFormModal({ isOpen, onClose, onSaved, selec
                 toast.success('✅ Collaborateur créé');
             }
             onSaved();
-        } catch {
+            onClose();
+        } catch (error) {
+            console.error(error);
             toast.error('❌ Erreur lors de la sauvegarde');
         }
     };
@@ -100,14 +139,49 @@ export default function CollaborateurFormModal({ isOpen, onClose, onSaved, selec
                         required
                     />
 
-                    <input
-                        name="role"
-                        placeholder="Role"
-                        value={form.role}
+                    {/* Sélection du département */}
+                    <select
+                        name="departement"
+                        value={form.departement}
                         onChange={handleChange}
                         className="w-full border rounded px-3 py-2"
                         required
-                    />
+                    >
+                        <option value="">-- Choisir un département --</option>
+                        {departements.map((d) => (
+                            <option key={d} value={d}>{d}</option>
+                        ))}
+                    </select>
+
+                    {/* Sélection du service */}
+                    {form.departement && (
+                        <select
+                            name="service"
+                            value={form.service}
+                            onChange={handleChange}
+                            className="w-full border rounded px-3 py-2"
+                            required
+                        >
+                            <option value="">-- Choisir un service --</option>
+                            {services[form.departement]?.map((s) => (
+                                <option key={s} value={s}>{s}</option>
+                            ))}
+                        </select>
+                    )}
+
+                    {/* Sélection du poste */}
+                    <select
+                        name="poste"
+                        value={form.poste}
+                        onChange={handleChange}
+                        className="w-full border rounded px-3 py-2"
+                        required
+                    >
+                        <option value="">-- Choisir un poste --</option>
+                        {postes.map((p) => (
+                            <option key={p} value={p}>{p}</option>
+                        ))}
+                    </select>
 
                     {/* Boutons */}
                     <div className="flex justify-end gap-3 pt-4">
