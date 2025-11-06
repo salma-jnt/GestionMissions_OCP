@@ -31,21 +31,36 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
+    // ➕ Inscription par email
     @PostMapping("/register")
     public Map<String, String> register(@RequestBody User user) {
+        // 🔹 Vérifier si email déjà utilisé
+        if (userRepo.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("❌ Email déjà utilisé !");
+        }
+
+        // 🔹 Encoder le mot de passe
         user.setPassword(encoder.encode(user.getPassword()));
         userRepo.save(user);
-        String token = jwtService.generateToken(user.getUsername());
+
+        // 🔹 Générer token JWT basé sur l’email
+        String token = jwtService.generateToken(user.getEmail());
         return Map.of("token", token, "role", user.getRole().name());
     }
 
+    // 🔑 Connexion par email
     @PostMapping("/login")
     public Map<String, String> login(@RequestBody User creds) {
+        // Authentification via email + mot de passe
         authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(creds.getUsername(), creds.getPassword())
+                new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getPassword())
         );
-        User user = userRepo.findByUsername(creds.getUsername()).orElseThrow();
-        String token = jwtService.generateToken(user.getUsername());
+
+        // Récupérer l’utilisateur par email
+        User user = userRepo.findByEmail(creds.getEmail())
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé !"));
+
+        String token = jwtService.generateToken(user.getEmail());
         return Map.of("token", token, "role", user.getRole().name());
     }
 }

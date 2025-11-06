@@ -28,5 +28,6 @@ public class Collaborateur {
 
     private String departement;  // Exemple : "Maintenance Industrielle"
     private String service;      // Exemple : "Mécanique lourde"
-    private String poste;        // Exemple : "Technicien de maintenance"
+    private String poste;
+    private String role;     // Exemple : "Technicien de maintenance"
 }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.ocp.missions.model.Collaborateur;
 import com.ocp.missions.model.Mission;
 
 public interface MissionRepository extends JpaRepository<Mission, Long> {
@@ -19,4 +20,10 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
     // Liste paginée triée par createdAt DESC + relations chargées
     @EntityGraph(attributePaths = {"collaborateur", "vehicule"})
     Page<Mission> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    // Récupérer les missions d’un véhicule spécifique
+    List<Mission> findByVehiculeId(Long id);
+
+    // ✅ Missions filtrées par collaborateur
+    List<Mission> findByCollaborateur(Collaborateur collaborateur);
 }

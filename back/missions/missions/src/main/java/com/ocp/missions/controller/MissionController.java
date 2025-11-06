@@ -1,13 +1,26 @@
 package com.ocp.missions.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.ocp.missions.model.Collaborateur;
 import com.ocp.missions.model.Mission;
 import com.ocp.missions.model.Vehicule;
+import com.ocp.missions.repository.CollaborateurRepository;
 import com.ocp.missions.repository.MissionRepository;
 import com.ocp.missions.repository.VehiculeRepository;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/missions")
@@ -16,92 +29,114 @@ public class MissionController {
 
     private final MissionRepository missionRepository;
     private final VehiculeRepository vehiculeRepository;
+    private final CollaborateurRepository collaborateurRepository;
 
-    public MissionController(MissionRepository missionRepository, VehiculeRepository vehiculeRepository) {
+    public MissionController(MissionRepository missionRepository, VehiculeRepository vehiculeRepository,
+            CollaborateurRepository collaborateurRepository) {
         this.missionRepository = missionRepository;
         this.vehiculeRepository = vehiculeRepository;
+        this.collaborateurRepository = collaborateurRepository;
     }
 
-    // 📋 Liste de toutes les missions
+    // 📋 Liste des missions filtrée selon le rôle
     @GetMapping
-    public List<Mission> getAllMissions() {
-        return missionRepository.findAll();
+    public ResponseEntity<?> getMissionsPourUtilisateurConnecte() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = auth.getName();
+
+            Collaborateur collaborateur = collaborateurRepository.findByEmail(email).orElse(null);
+
+            if (collaborateur == null) {
+                return ResponseEntity.status(403).body("Collaborateur non trouvé pour l'email : " + email);
+            }
+
+            if ("RESPONSABLE".equalsIgnoreCase(collaborateur.getRole())) {
+                return ResponseEntity.ok(missionRepository.findAll());
+            } else {
+                return ResponseEntity.ok(missionRepository.findByCollaborateur(collaborateur));
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erreur serveur : " + e.getMessage());
+        }
     }
 
     // 🔍 Récupérer une mission par ID
     @GetMapping("/{id}")
-    public ResponseEntity<Mission> getMissionById(@PathVariable Long id) {
-        Mission mission = missionRepository.findById(id).orElse(null);
-        if (mission == null) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> getMissionById(@PathVariable Long id) {
+        try {
+            return missionRepository.findById(id)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erreur lors de la récupération de la mission : " + e.getMessage());
         }
-        return ResponseEntity.ok(mission);
     }
 
     // ➕ Création d’une nouvelle mission avec vérification de disponibilité du véhicule
     @PostMapping
     public ResponseEntity<?> createMission(@RequestBody Mission mission) {
         try {
-            // ✅ Vérifier si un véhicule est associé
             if (mission.getVehicule() != null) {
                 Vehicule vehicule = vehiculeRepository.findById(mission.getVehicule().getId())
                         .orElseThrow(() -> new RuntimeException("Véhicule introuvable"));
 
-                // 🔍 Vérifier si le véhicule est déjà occupé
                 List<Mission> missionsVehicule = missionRepository.findByVehiculeId(vehicule.getId());
-
                 for (Mission m : missionsVehicule) {
-                    // Cas 1 : mission en cours
                     if ("En cours".equalsIgnoreCase(m.getStatut())) {
-                        return ResponseEntity.badRequest()
-                                .body("❌ Ce véhicule est actuellement en mission !");
+                        return ResponseEntity.badRequest().body("❌ Ce véhicule est actuellement en mission !");
                     }
-
-                    // Cas 2 : mission à venir le même jour
                     if ("À venir".equalsIgnoreCase(m.getStatut())
                             && m.getDateDebut() != null
                             && m.getDateDebut().equals(mission.getDateDebut())) {
-                        return ResponseEntity.badRequest()
-                                .body("⚠️ Ce véhicule est déjà réservé pour cette date !");
+                        return ResponseEntity.badRequest().body("⚠️ Ce véhicule est déjà réservé pour cette date !");
                     }
                 }
             }
 
-            // ✅ Enregistrer la mission si tout est bon
             Mission saved = missionRepository.save(mission);
             return ResponseEntity.ok(saved);
 
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erreur : " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erreur lors de la création de la mission : " + e.getMessage());
         }
     }
 
     // ✏️ Mise à jour d’une mission
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMission(@PathVariable Long id, @RequestBody Mission updatedMission) {
-        return missionRepository.findById(id)
-                .map(mission -> {
-                    mission.setTitre(updatedMission.getTitre());
-                    mission.setDescription(updatedMission.getDescription());
-                    mission.setLieu(updatedMission.getLieu());
-                    mission.setStatut(updatedMission.getStatut());
-                    mission.setDateDebut(updatedMission.getDateDebut());
-                    mission.setDateFin(updatedMission.getDateFin());
-                    mission.setVehicule(updatedMission.getVehicule());
-                    mission.setCollaborateur(updatedMission.getCollaborateur());
-                    missionRepository.save(mission);
-                    return ResponseEntity.ok(mission);
-                })
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            return missionRepository.findById(id)
+                    .map(mission -> {
+                        mission.setTitre(updatedMission.getTitre());
+                        mission.setDescription(updatedMission.getDescription());
+                        mission.setLieu(updatedMission.getLieu());
+                        mission.setStatut(updatedMission.getStatut());
+                        mission.setDateDebut(updatedMission.getDateDebut());
+                        mission.setDateFin(updatedMission.getDateFin());
+                        mission.setVehicule(updatedMission.getVehicule());
+                        mission.setCollaborateur(updatedMission.getCollaborateur());
+                        missionRepository.save(mission);
+                        return ResponseEntity.ok(mission);
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erreur lors de la mise à jour : " + e.getMessage());
+        }
     }
 
     // 🗑️ Suppression d’une mission
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMission(@PathVariable Long id) {
-        if (!missionRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+        try {
+            if (!missionRepository.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            missionRepository.deleteById(id);
+            return ResponseEntity.ok("Mission supprimée avec succès.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erreur lors de la suppression : " + e.getMessage());
         }
-        missionRepository.deleteById(id);
-        return ResponseEntity.ok().build();
     }
 }

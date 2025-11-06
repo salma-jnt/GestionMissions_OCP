@@ -8,5 +8,8 @@ import com.ocp.missions.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByUsername(String username);
+    // 🔹 Méthode pour rechercher un utilisateur par email
+    Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { login } from '../services/authService';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import ocpLogo from '../assets/ocp-logo.png'; // Assure-toi d’avoir ce logo
+import ocpLogo from '../assets/ocp-logo.png';
 
 function LoginPage() {
-    const [form, setForm] = useState({ username: '', password: '' });
+    const [form, setForm] = useState({ email: '', password: '' }); // ✅ email au lieu de username
     const navigate = useNavigate();
 
     const handleChange = e => {
@@ -17,8 +17,9 @@ function LoginPage() {
         try {
             await login(form);
             toast.success("Connexion réussie");
-            navigate('/collaborateurs'); // ou '/dashboard' si tu as une page dédiée
-        } catch {
+            navigate('/collaborateurs'); // 🔸 ou '/dashboard' selon ton rôle
+        } catch (err) {
+            console.error(err);
             toast.error("Échec de connexion");
         }
     };
@@ -30,14 +31,18 @@ function LoginPage() {
                     <img src={ocpLogo} alt="OCP Logo" className="h-12" />
                 </div>
                 <h2 className="text-2xl font-bold text-center text-green-800 mb-2">Bienvenue</h2>
-                <p className="text-sm text-center text-gray-500 mb-6">Connectez-vous à votre compte</p>
+                <p className="text-sm text-center text-gray-500 mb-6">
+                    Connectez-vous à votre compte
+                </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <input
-                        name="username"
-                        placeholder="Nom d'utilisateur"
-                        value={form.username}
+                        name="email"
+                        type="email"
+                        placeholder="Adresse e-mail"
+                        value={form.email}
                         onChange={handleChange}
+                        required
                         className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                     <input
@@ -46,6 +51,7 @@ function LoginPage() {
                         placeholder="Mot de passe"
                         value={form.password}
                         onChange={handleChange}
+                        required
                         className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                     <button

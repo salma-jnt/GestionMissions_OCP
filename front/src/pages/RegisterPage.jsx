@@ -6,7 +6,7 @@ import ocpLogo from '../assets/ocp-logo.png';
 
 function RegisterPage() {
     const [form, setForm] = useState({
-        username: '',
+        email: '',          // ✅ changé : email au lieu de username
         password: '',
         role: 'COLLABORATEUR'
     });
@@ -19,10 +19,13 @@ function RegisterPage() {
     const handleSubmit = async e => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:8080/api/auth/register', form);
+            await axios.post('http://localhost:8080/api/auth/register', form, {
+                headers: { 'Content-Type': 'application/json' },
+            });
             toast.success("Inscription réussie. Connectez-vous.");
             navigate('/login');
-        } catch {
+        } catch (err) {
+            console.error(err);
             toast.error("Échec d’inscription");
         }
     };
@@ -38,10 +41,12 @@ function RegisterPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <input
-                        name="username"
-                        placeholder="Nom d'utilisateur"
-                        value={form.username}
+                        name="email"
+                        type="email"
+                        placeholder="Adresse e-mail"
+                        value={form.email}
                         onChange={handleChange}
+                        required
                         className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                     <input
@@ -50,6 +55,7 @@ function RegisterPage() {
                         placeholder="Mot de passe"
                         value={form.password}
                         onChange={handleChange}
+                        required
                         className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                     <select
