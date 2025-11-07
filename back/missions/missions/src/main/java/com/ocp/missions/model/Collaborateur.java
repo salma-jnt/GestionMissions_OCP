@@ -1,14 +1,11 @@
 package com.ocp.missions.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Getter
@@ -25,9 +22,18 @@ public class Collaborateur {
     private String nom;
     private String prenom;
     private String email;
-
-    private String departement;  // Exemple : "Maintenance Industrielle"
-    private String service;      // Exemple : "Mécanique lourde"
+    private String departement; // Exemple : "Maintenance Industrielle"
+    private String service;     // Exemple : "Mécanique lourde"
     private String poste;
-    private String role;     // Exemple : "Technicien de maintenance"
+    private String role;        // Exemple : "Technicien de maintenance"
+
+    // 🔹 Relation avec les missions
+    @OneToMany(mappedBy = "collaborateur", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore // évite les boucles Mission → Collaborateur → Mission
+    private List<Mission> missions;
+
+    // 🔹 Lien bidirectionnel avec User
+    @OneToOne(mappedBy = "collaborateur")
+    @JsonIgnore
+    private User user;
 }

@@ -1,15 +1,17 @@
+// src/services/authService.js
 import axios from '../api/axiosConfig';
 import { jwtDecode } from 'jwt-decode';
+ // <-- correct import
 
-
-const API_URL = 'http://localhost:8080/api/auth';
+const API_URL = '/api/auth'; // <- utilise baseURL de axiosConfig (http://localhost:8080)
 
 export const login = async (credentials) => {
     const response = await axios.post(`${API_URL}/login`, credentials);
-    const { token, role } = response.data;
-
+    const { token, role } = response.data || {};
+    if (token) {
     localStorage.setItem('token', token);
-    localStorage.setItem('role', role);
+    if (role) localStorage.setItem('role', role);
+    }
     return { token, role };
 };
 
@@ -18,9 +20,8 @@ export const logout = () => {
     localStorage.removeItem('role');
 };
 
-export const getToken = () => localStorage.getItem('token');
-
-export const getRole = () => localStorage.getItem('role');
+export const getToken = () => localStorage.getItem('token') || null;
+export const getRole = () => localStorage.getItem('role') || null;
 
 export const isAuthenticated = () => {
     const token = getToken();
@@ -29,9 +30,11 @@ export const isAuthenticated = () => {
 
 export const isTokenExpired = (token) => {
     try {
-        const decoded = jwtDecode(token);
-        return decoded.exp * 1000 < Date.now(); // exp en secondes
-    } catch {
-        return true;
+    const decoded = jwtDecode(token);
+    // decoded.exp is seconds
+    return decoded.exp * 1000 < Date.now();
+    } catch (e) {
+    return true;
     }
 };
+ 

@@ -1,66 +1,87 @@
 package com.ocp.missions.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 import com.ocp.missions.model.User;
-import com.ocp.missions.repository.UserRepository;
 import com.ocp.missions.service.JwtService;
+import com.ocp.missions.service.UserService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthenticationManager authManager;
-    private final UserRepository userRepo;
-    private final PasswordEncoder encoder;
+    private final AuthenticationManager authenticationManager;
+    private final UserService userService;
     private final JwtService jwtService;
 
-    public AuthController(AuthenticationManager authManager, UserRepository userRepo,
-            PasswordEncoder encoder, JwtService jwtService) {
-        this.authManager = authManager;
-        this.userRepo = userRepo;
-        this.encoder = encoder;
-        this.jwtService = jwtService;
-    }
-
-    // ➕ Inscription par email
-    @PostMapping("/register")
-    public Map<String, String> register(@RequestBody User user) {
-        // 🔹 Vérifier si email déjà utilisé
-        if (userRepo.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("❌ Email déjà utilisé !");
-        }
-
-        // 🔹 Encoder le mot de passe
-        user.setPassword(encoder.encode(user.getPassword()));
-        userRepo.save(user);
-
-        // 🔹 Générer token JWT basé sur l’email
-        String token = jwtService.generateToken(user.getEmail());
-        return Map.of("token", token, "role", user.getRole().name());
-    }
-
-    // 🔑 Connexion par email
+    // 🔐 Connexion
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody User creds) {
-        // Authentification via email + mot de passe
-        authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getPassword())
-        );
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
 
-        // Récupérer l’utilisateur par email
-        User user = userRepo.findByEmail(creds.getEmail())
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé !"));
+            // Authentification via Spring Security
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, password)
+            );
 
-        String token = jwtService.generateToken(user.getEmail());
-        return Map.of("token", token, "role", user.getRole().name());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // Récupération de l’objet UserDetails
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            // Récupération de l’entité User depuis la BDD (via l’email)
+            User user = userService.findByEmail(userDetails.getUsername());
+
+            // Génération du token JWT
+            String token = jwtService.generateToken(user);
+
+            // Réponse JSON propre
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("email", user.getEmail());
+            response.put("role", user.getRole());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Email ou mot de passe incorrect");
+            return ResponseEntity.status(401).body(error);
+        }
+    }
+
+    // 🧾 Inscription
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            // Sauvegarde du nouvel utilisateur
+            User savedUser = userService.registerUser(user);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Inscription réussie");
+            response.put("email", savedUser.getEmail());
+            response.put("role", savedUser.getRole());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Erreur lors de l’inscription : " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 }
