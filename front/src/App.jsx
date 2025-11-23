@@ -1,22 +1,36 @@
-import React, { useState } from 'react';
-import CollaborateurForm from './components/CollaborateurForm';
-import CollaborateurList from './components/CollaborateurList';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+
+import CollaborateursPage from './pages/CollaborateursPage';
+import MissionsPage from './pages/MissionsPage';
+import CartePage from './pages/CartePage';
+import { ToastContainer } from 'react-toastify';
+import AffectationsPage from './pages/AffectationsPage';
+import AffecterMissionPage from './pages/AffecterMissionPage';
+import VehiculesPage from './pages/VehiculesPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 function App() {
-    const [selected, setSelected] = useState(null);
-    const [refresh, setRefresh] = useState(false);
-
-    const onSaved = () => {
-        setSelected(null);
-        setRefresh(!refresh);
-    };
-
     return (
-        <div className="container">
-            <h2 className="mt-4">Gestion des collaborateurs</h2>
-            <CollaborateurForm selected={selected} onSaved={onSaved} />
-            <CollaborateurList onEdit={setSelected} refresh={refresh} />
-        </div>
+        <Router>
+            <Navbar />
+            <div className="container mt-4">
+                <Routes>
+                    <Route path="/" element={<CollaborateursPage />} />
+                    <Route path="/collaborateurs" element={<CollaborateursPage />} />
+                    <Route path="/missions" element={<MissionsPage />} />
+                    <Route path="/carte" element={<CartePage />} />
+                    <Route path="/affectations" element={<AffectationsPage />} />
+                    <Route path="/missions/:id/affecter" element={<AffecterMissionPage />} />
+                    <Route path="/vehicules" element={<VehiculesPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                </Routes>
+            </div>
+            <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+        </Router>
     );
 }
 
